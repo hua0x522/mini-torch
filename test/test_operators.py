@@ -1,5 +1,8 @@
+from typing import Callable, List, Tuple
+
 import pytest 
 from hypothesis import given
+from hypothesis.strategies import lists
 from .strategies import assert_close, small_floats
 
 from minitorch.operators import (
@@ -15,7 +18,11 @@ from minitorch.operators import (
     neg,
     relu,
     relu_back,
-    sigmoid
+    sigmoid,
+    negList,
+    prod,
+    sum,
+    addLists
 )
 
 
@@ -132,3 +139,57 @@ def test_distribute(a: float, b: float, c: float) -> None:
     """
     assert_close(mul(add(a, b), c), add(mul(a, c), mul(b, c)))
 
+
+# ## Task 0.3  - Higher-order functions
+
+# These tests check that your higher-order functions obey basic
+# properties.
+
+
+@pytest.mark.task0_3
+@given(small_floats, small_floats, small_floats, small_floats)
+def test_zip_with(a: float, b: float, c: float, d: float) -> None:
+    x1, x2 = addLists([a, b], [c, d])
+    y1, y2 = a + c, b + d
+    assert_close(x1, y1)
+    assert_close(x2, y2)
+
+
+@pytest.mark.task0_3
+@given(
+    lists(small_floats, min_size=5, max_size=5),
+    lists(small_floats, min_size=5, max_size=5),
+)
+def test_sum_distribute(ls1: List[float], ls2: List[float]) -> None:
+    """
+    Write a test that ensures that the sum of `ls1` plus the sum of `ls2`
+    is the same as the sum of each element of `ls1` plus each element of `ls2`.
+    """
+    assert_close(sum(ls1) + sum(ls2), sum(addLists(ls1, ls2)))
+
+
+@pytest.mark.task0_3
+@given(lists(small_floats))
+def test_sum(ls: List[float]) -> None:
+    assert_close(sum(ls), sum(ls))
+
+
+@pytest.mark.task0_3
+@given(small_floats, small_floats, small_floats)
+def test_prod(x: float, y: float, z: float) -> None:
+    assert_close(prod([x, y, z]), x * y * z)
+
+
+@pytest.mark.task0_3
+@given(lists(small_floats))
+def test_negList(ls: List[float]) -> None:
+    check = negList(ls)
+    for i, j in zip(ls, check):
+        assert_close(i, -j)
+
+
+@given(small_floats, small_floats)
+def test_backs(a: float, b: float) -> None:
+    relu_back(a, b)
+    inv_back(a + 2.4, b)
+    log_back(abs(a) + 4, b)

@@ -24,6 +24,4 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
       run: |
-        echo "Module 0"
-        pytest test -x -m task0_1
-        pytest test -x -m task0_2
+        pytest test
