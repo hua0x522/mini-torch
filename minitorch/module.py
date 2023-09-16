@@ -1,9 +1,7 @@
 from __future__ import annotations
-
 from typing import Any, Dict, Optional, Sequence, Tuple
 
-
-class Module:
+class Module: 
     """
     Modules form a tree that store parameters and other
     submodules. They make up the basis of neural network stacks.
@@ -14,10 +12,9 @@ class Module:
         training : Whether the module is in training mode or evaluation mode
 
     """
-
     _modules: Dict[str, Module]
-    _parameters: Dict[str, Parameter]
-    training: bool
+    _parameters: Dict[str, Parameter] 
+    training: bool 
 
     def __init__(self) -> None:
         self._modules = {}
@@ -31,29 +28,42 @@ class Module:
 
     def train(self) -> None:
         "Set the mode of this module and all descendent modules to `train`."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
-
+        self.training = True 
+        for module in self.modules():
+            module.train()
+    
     def eval(self) -> None:
         "Set the mode of this module and all descendent modules to `eval`."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
+        self.training = False
+        for module in self.modules():
+            module.eval()
 
     def named_parameters(self) -> Sequence[Tuple[str, Parameter]]:
         """
         Collect all the parameters of this module and its descendents.
-
-
         Returns:
             The name and `Parameter` of each ancestor parameter.
         """
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
-
+        res = {}
+        def collect(name: str, module: Module):
+            prefix = name + '.' if name else ''
+            for sub_name, parameter in module._parameters.items():
+                res[prefix + sub_name] = parameter
+            for sub_name, sub_module in module._modules.items():
+                collect(prefix + sub_name, sub_module)
+        collect('', self)
+        return res
+    
     def parameters(self) -> Sequence[Parameter]:
         "Enumerate over all the parameters of this module and its descendents."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
+        res = []
+        def collect(res: list, module: Module):
+            for parameter in module._parameters.values():
+                res.append(parameter)
+            for sub_module in module._modules.values():
+                collect(res, sub_module)
+        collect(res, self)
+        return res 
 
     def add_parameter(self, k: str, v: Any) -> Parameter:
         """
@@ -124,15 +134,14 @@ class Parameter:
     It is designed to hold a `Variable`, but we allow it to hold
     any value for testing.
     """
-
     def __init__(self, x: Any, name: Optional[str] = None) -> None:
-        self.value = x
-        self.name = name
+        self.value = x 
+        self.name = name 
         if hasattr(x, "requires_grad_"):
             self.value.requires_grad_(True)
             if self.name:
-                self.value.name = self.name
-
+                self.value.name = self.name 
+    
     def update(self, x: Any) -> None:
         "Update the parameter value."
         self.value = x
